@@ -145,7 +145,12 @@ def road_detection():
 
     H_road = cv2.inRange(H_ground, 90, 140, Road_img)
 
-
+    cv2.imwrite("H_road.jpg", H_road)
+    cv2.imwrite("H_ground.jpg", H_ground)
+    cv2.imwrite("Ground.jpg", Ground)
+    cv2.imwrite("Flood.jpg", Flood)
+    cv2.imwrite("Road_thresh.jpg", Road_thresh)
+    cv2.imwrite("H.jpg", H)
     Compare(Road_thresh, H_road)
     
 
@@ -196,6 +201,11 @@ def Coin():
             # Draw center (red)
             cv2.circle(Coin_rgb, (i[0], i[1]), 2, (0, 0, 255), 3)
 
+    cv2.imwrite("Coin_circle.jpg", Coin_rgb)
+    cv2.imwrite("Coin_area.jpg", BlankPage)
+    cv2.imwrite("Coin_denoise.jpg", CoinDenoise)
+    cv2.imwrite("Edge.jpg", EdgeEnhance)
+    cv2.imwrite("Clahe.jpg", Light)
     Compare(Filled, Coin_rgb)
 
 
@@ -214,8 +224,6 @@ def Fundus():
                                     7, # use with color
                                     35 # Higher Lower noise smoother edge
                                     )
-
-    canny =  cv2.Canny(Denoise, 100, 100)
 
     Addaptive_Mean = cv2.adaptiveThreshold(Light, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 7, 15)
 
@@ -243,6 +251,13 @@ def Fundus():
     cv2.circle(new_img, (cX, cY), 5, (255, 0, 0), -1)
     cv2.putText(new_img, (f'Centroid = X : {cX}, Y :{cY}.'), (cX - 50, cY - 20),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 0), 1)
 
+
+    cv2.imwrite("ROI.jpg", ROI)
+    cv2.imwrite("Nerves.jpg", Nerves)
+    cv2.imwrite("Centroid.jpg", new_img)
+    cv2.imwrite("Clage.jpg", Light)
+    cv2.imwrite("Denoise.jpg", Denoise)
+    cv2.imwrite("Adaptive_Threshold.jpg", Addaptive_Mean)
     Compare(dilate, new_img)
 
 
@@ -253,13 +268,13 @@ def Deer():
 
     H, S, V = cv2.split(Deer_hsv)
 
-    denoise = cv2.fastNlMeansDenoising(S, None, 
+    NLM = cv2.fastNlMeansDenoising(S, None, 
                                     21, #Higher Lower noise smoother edge 
                                     7, # use with color
                                     21 # Higher Lower noise smoother edge
                                     )
 
-    Deer = cv2.inRange(denoise, 20, 120)
+    Deer = cv2.inRange(NLM, 20, 120)
     denoise = cv2.medianBlur(Deer, 5)
 
     ROI = cv2.bitwise_and(Deer, S)
@@ -288,148 +303,156 @@ def Deer():
 
             cv2.rectangle(Deer_rgb, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
+    cv2.imwrite("NLM.jpg", NLM)
+    # cv2.imwrite("Distant_normalization.jpg", dist_norm)
+    # cv2.imwrite("ROI.jpg", ROI)
+    # cv2.imwrite("S.jpg", S)
+    # cv2.imwrite("Denoise.jpg", denoise)
+    # cv2.imwrite("threshold.jpg", Deer)
+    # cv2.imwrite("Sure_fg.jpg", sure_deer)
+    # cv2.imwrite("Distant_transform.jpg", dist)
     Compare(markers, Deer_rgb)
 
 
-#def Banana():
+def Banana():
+    output_path = "//mnt//C0E08C6AE08C690C//work//my_work//Second_year//Second Semester//Image Processing//FinalProject//Output"
+    Mas_path = os.path.join(Path, "Banana/กล้วยไข่")
+    Awak_path = os.path.join(Path, "Banana/กล้วยน้ำว้า")
+    Cavendish_path = os.path.join(Path, "Banana/กล้วยหอม")
+    Mas = []
+    Awak = []
+    Cavendish = []
 
-output_path = "//mnt//C0E08C6AE08C690C//work//my_work//Second_year//Second Semester//Image Processing//FinalProject//Output//Banana"
+    for index in range(1, 59):
+        name = f"Mas{index:02}.JPG"
+        banana_img = cv2.imread(os.path.join(Mas_path, name))
+        banana_hsv = cv2.cvtColor(banana_img, cv2.COLOR_BGR2HSV)
+        banana_gray = cv2.cvtColor(banana_img, cv2.COLOR_BGR2GRAY)
 
-Mas_path = os.path.join(Path, "Banana/กล้วยไข่")
-Awak_path = os.path.join(Path, "Banana/กล้วยน้ำว้า")
-Cavendish_path = os.path.join(Path, "Banana/กล้วยหอม")
-Mas = []
-Awak = []
-Cavendish = []
+        H, S, V = cv2.split(banana_hsv)
 
-for index in range(1, 59):
-    name = f"Mas{index:02}.JPG"
-    banana_img = cv2.imread(os.path.join(Mas_path, name))
-    banana_hsv = cv2.cvtColor(banana_img, cv2.COLOR_BGR2HSV)
-    banana_gray = cv2.cvtColor(banana_img, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(S , 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        contour, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        banana = np.zeros_like(banana_img)
+        banana = cv2.fillPoly(banana, contour, color=255)
 
-    H, S, V = cv2.split(banana_hsv)
+        # edge
+        edge = cv2.Canny(banana_gray, 50, 50)
+        edge_pixels = np.sum(edge>0)
+        total_pixels = edge.shape[0]*edge.shape[1]
+        edge_density = edge_pixels/total_pixels
+        Edge_percent = f"{edge_density * 100:.2f}%"
 
-    _, thresh = cv2.threshold(S , 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    contour, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    banana = np.zeros_like(banana_img)
-    banana = cv2.fillPoly(banana, contour, color=255)
+        #mean color
+        R, G, B = cv2.split(banana)
+        banana_pixels = R == 255
+        H_mean = H[banana_pixels].mean()
+        H_mean = f"{H_mean:.2f}"
 
-    # edge
-    edge = cv2.Canny(banana_gray, 50, 50)
-    edge_pixels = np.sum(edge>0)
-    total_pixels = edge.shape[0]*edge.shape[1]
-    edge_density = edge_pixels/total_pixels
-    Edge_percent = f"{edge_density * 100:.2f}%"
+        # banana area
+        banana_area = banana_pixels.sum()
+        ratio = banana_area / total_pixels
+        banana_percent = f"{ratio * 100:.2f}%"
 
-    #mean color
-    R, G, B = cv2.split(banana)
-    banana_pixels = R == 255
-    H_mean = H[banana_pixels].mean()
-    H_mean = f"{H_mean:.2f}"
-
-    # banana area
-    banana_area = banana_pixels.sum()
-    ratio = banana_area / total_pixels
-    banana_percent = f"{ratio * 100:.2f}%"
-
-    print(name,  H_mean, banana_percent, Edge_percent)
-
-    Mas.append([name, H_mean, banana_percent, Edge_percent])
+        print(name,  H_mean, banana_percent, Edge_percent)
+        cv2.imwrite(os.path.join(output_path, f"กล้วยไข่//{name}"), banana)
+        Mas.append([name, H_mean, banana_percent, Edge_percent])
 
 
-for index in range(3, 49):
-    if index == 3:
-        name = "Awak4.JPG"
-    else: name = f"Awak{index:02}.JPG"
-    banana_img = cv2.imread(os.path.join(Awak_path, name))
-    banana_hsv = cv2.cvtColor(banana_img, cv2.COLOR_BGR2HSV)
-    banana_gray = cv2.cvtColor(banana_img, cv2.COLOR_BGR2GRAY)
+    for index in range(3, 49):
+        if index == 3:
+            name = "Awak4.JPG"
+        else: name = f"Awak{index:02}.JPG"
+        banana_img = cv2.imread(os.path.join(Awak_path, name))
+        banana_hsv = cv2.cvtColor(banana_img, cv2.COLOR_BGR2HSV)
+        banana_gray = cv2.cvtColor(banana_img, cv2.COLOR_BGR2GRAY)
 
-    H, S, V = cv2.split(banana_hsv)
+        H, S, V = cv2.split(banana_hsv)
 
-    _, thresh = cv2.threshold(S , 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    contour, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    banana = np.zeros_like(banana_img)
-    banana = cv2.fillPoly(banana, contour, color=255)
+        _, thresh = cv2.threshold(S , 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        contour, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        banana = np.zeros_like(banana_img)
+        banana = cv2.fillPoly(banana, contour, color=255)
 
-    # edge
-    edge = cv2.Canny(banana_gray, 50, 50)
-    edge_pixels = np.sum(edge>0)
-    total_pixels = edge.shape[0]*edge.shape[1]
-    edge_density = edge_pixels/total_pixels
-    Edge_percent = f"{edge_density * 100:.2f}%"
+        # edge
+        edge = cv2.Canny(banana_gray, 50, 50)
+        edge_pixels = np.sum(edge>0)
+        total_pixels = edge.shape[0]*edge.shape[1]
+        edge_density = edge_pixels/total_pixels
+        Edge_percent = f"{edge_density * 100:.2f}%"
 
-    #mean color
-    R, G, B = cv2.split(banana)
-    banana_pixels = R == 255
-    H_mean = H[banana_pixels].mean()
-    H_mean = f"{H_mean:.2f}"
+        #mean color
+        R, G, B = cv2.split(banana)
+        banana_pixels = R == 255
+        H_mean = H[banana_pixels].mean()
+        H_mean = f"{H_mean:.2f}"
 
-    # banana area
-    banana_area = banana_pixels.sum()
-    ratio = banana_area / total_pixels
-    banana_percent = f"{ratio * 100:.2f}%"
+        # banana area
+        banana_area = banana_pixels.sum()
+        ratio = banana_area / total_pixels
+        banana_percent = f"{ratio * 100:.2f}%"
 
-    print(name,  H_mean, banana_percent, Edge_percent)
+        print(name,  H_mean, banana_percent, Edge_percent)
 
-    # cv2.imwrite(os.path.join(output_path, name), banana)
-    Awak.append([name, H_mean, banana_percent, Edge_percent])
+        # cv2.imwrite(os.path.join(output_path, name), banana)
+        Awak.append([name, H_mean, banana_percent, Edge_percent])
 
 
-for index in range(4, 49):
-    name = f"Cavendish{index:02}.JPG"
-    banana_img = cv2.imread(os.path.join(Cavendish_path, name))
-    banana_hsv = cv2.cvtColor(banana_img, cv2.COLOR_BGR2HSV)
-    banana_gray = cv2.cvtColor(banana_img, cv2.COLOR_BGR2GRAY)
+    for index in range(4, 49):
+        name = f"Cavendish{index:02}.JPG"
+        banana_img = cv2.imread(os.path.join(Cavendish_path, name))
+        banana_hsv = cv2.cvtColor(banana_img, cv2.COLOR_BGR2HSV)
+        banana_gray = cv2.cvtColor(banana_img, cv2.COLOR_BGR2GRAY)
 
-    H, S, V = cv2.split(banana_hsv)
+        H, S, V = cv2.split(banana_hsv)
 
-    _, thresh = cv2.threshold(S , 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    contour, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    banana = np.zeros_like(banana_img)
-    banana = cv2.fillPoly(banana, contour, color=255)
+        _, thresh = cv2.threshold(S , 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        contour, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        banana = np.zeros_like(banana_img)
+        banana = cv2.fillPoly(banana, contour, color=255)
 
-    # edge
-    edge = cv2.Canny(banana_gray, 50, 50)
-    edge_pixels = np.sum(edge>0)
-    total_pixels = edge.shape[0]*edge.shape[1]
-    edge_density = edge_pixels/total_pixels
-    Edge_percent = f"{edge_density * 100:.2f}%"
+        # edge
+        edge = cv2.Canny(banana_gray, 50, 50)
+        edge_pixels = np.sum(edge>0)
+        total_pixels = edge.shape[0]*edge.shape[1]
+        edge_density = edge_pixels/total_pixels
+        Edge_percent = f"{edge_density * 100:.2f}%"
 
-    #mean color
-    R, G, B = cv2.split(banana)
-    banana_pixels = R == 255
-    H_mean = H[banana_pixels].mean()
-    H_mean = f"{H_mean:.2f}"
+        #mean color
+        R, G, B = cv2.split(banana)
+        banana_pixels = R == 255
+        H_mean = H[banana_pixels].mean()
+        H_mean = f"{H_mean:.2f}"
 
-    # banana area
-    banana_area = banana_pixels.sum()
-    ratio = banana_area / total_pixels
-    banana_percent = f"{ratio * 100:.2f}%"
+        # banana area
+        banana_area = banana_pixels.sum()
+        ratio = banana_area / total_pixels
+        banana_percent = f"{ratio * 100:.2f}%"
 
-    print(name,  H_mean, banana_percent, Edge_percent)
+        print(name,  H_mean, banana_percent, Edge_percent)
 
-    # cv2.imwrite(os.path.join(output_path, f"กล้วยหอม//{name}"), banana)
-    Cavendish.append([name, H_mean, banana_percent, Edge_percent])
 
-import csv
-BanType = [Mas, Cavendish, Awak]
-name = ["Mas", "Cavendish", "Awak"]
-index = 0
-for List in BanType:
-    # One CSV file per banana type
-    filename = f'banana_{name[index]}.csv'
-    index += 1
+        Cavendish.append([name, H_mean, banana_percent, Edge_percent])
 
-    with open(filename, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(['filename', 'H_mean', 'banana_percent', 'Edge_percent'])
+# import csv
+# BanType = [Mas, Cavendish, Awak]
+# name = ["Mas", "Cavendish", "Awak"]
+# index = 0
+# for List in BanType:
+#     # One CSV file per banana type
+#     filename = f'banana_{name[index]}.csv'
+#     index += 1
 
-        for i in List : 
-            writer.writerow([i[0], i[1], i[2], i[3]])
+#     with open(filename, 'w', newline='') as f:
+#         writer = csv.writer(f)
+#         writer.writerow(['filename', 'H_mean', 'banana_percent', 'Edge_percent'])
 
-print(Mas)
-print(Awak)
-print(Cavendish)
+#         for i in List : 
+#             writer.writerow([i[0], i[1], i[2], i[3]])
+# road_detection()
 
+# Coin()
+
+# Fundus() 
+
+Deer()
