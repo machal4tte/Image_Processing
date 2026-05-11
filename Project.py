@@ -145,12 +145,6 @@ def road_detection():
 
     H_road = cv2.inRange(H_ground, 90, 140, Road_img)
 
-    cv2.imwrite("H_road.jpg", H_road)
-    cv2.imwrite("H_ground.jpg", H_ground)
-    cv2.imwrite("Ground.jpg", Ground)
-    cv2.imwrite("Flood.jpg", Flood)
-    cv2.imwrite("Road_thresh.jpg", Road_thresh)
-    cv2.imwrite("H.jpg", H)
     Compare(Road_thresh, H_road)
     
 
@@ -201,11 +195,6 @@ def Coin():
             # Draw center (red)
             cv2.circle(Coin_rgb, (i[0], i[1]), 2, (0, 0, 255), 3)
 
-    cv2.imwrite("Coin_circle.jpg", Coin_rgb)
-    cv2.imwrite("Coin_area.jpg", BlankPage)
-    cv2.imwrite("Coin_denoise.jpg", CoinDenoise)
-    cv2.imwrite("Edge.jpg", EdgeEnhance)
-    cv2.imwrite("Clahe.jpg", Light)
     Compare(Filled, Coin_rgb)
 
 
@@ -251,13 +240,6 @@ def Fundus():
     cv2.circle(new_img, (cX, cY), 5, (255, 0, 0), -1)
     cv2.putText(new_img, (f'Centroid = X : {cX}, Y :{cY}.'), (cX - 50, cY - 20),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 0), 1)
 
-
-    cv2.imwrite("ROI.jpg", ROI)
-    cv2.imwrite("Nerves.jpg", Nerves)
-    cv2.imwrite("Centroid.jpg", new_img)
-    cv2.imwrite("Clage.jpg", Light)
-    cv2.imwrite("Denoise.jpg", Denoise)
-    cv2.imwrite("Adaptive_Threshold.jpg", Addaptive_Mean)
     Compare(dilate, new_img)
 
 
@@ -303,14 +285,6 @@ def Deer():
 
             cv2.rectangle(Deer_rgb, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-    cv2.imwrite("NLM.jpg", NLM)
-    # cv2.imwrite("Distant_normalization.jpg", dist_norm)
-    # cv2.imwrite("ROI.jpg", ROI)
-    # cv2.imwrite("S.jpg", S)
-    # cv2.imwrite("Denoise.jpg", denoise)
-    # cv2.imwrite("threshold.jpg", Deer)
-    # cv2.imwrite("Sure_fg.jpg", sure_deer)
-    # cv2.imwrite("Distant_transform.jpg", dist)
     Compare(markers, Deer_rgb)
 
 
@@ -433,26 +407,3 @@ def Banana():
 
 
         Cavendish.append([name, H_mean, banana_percent, Edge_percent])
-
-# import csv
-# BanType = [Mas, Cavendish, Awak]
-# name = ["Mas", "Cavendish", "Awak"]
-# index = 0
-# for List in BanType:
-#     # One CSV file per banana type
-#     filename = f'banana_{name[index]}.csv'
-#     index += 1
-
-#     with open(filename, 'w', newline='') as f:
-#         writer = csv.writer(f)
-#         writer.writerow(['filename', 'H_mean', 'banana_percent', 'Edge_percent'])
-
-#         for i in List : 
-#             writer.writerow([i[0], i[1], i[2], i[3]])
-# road_detection()
-
-# Coin()
-
-# Fundus() 
-
-Deer()
