@@ -1,8 +1,8 @@
 import cv2
 import os
-os.environ["QT_QPA_PLATFORM"] = "wayland"
+# os.environ["QT_QPA_PLATFORM"] = "wayland"
 import matplotlib
-matplotlib.use('Qt5Agg')
+# matplotlib.use('Qt5Agg')
 import numpy as np
 import matplotlib.pyplot as plt
 import numpy as np
@@ -92,19 +92,10 @@ def retinex(img, sigma=30):
     return cv2.normalize(result, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
 
 # Linux
-Path = "//mnt//C0E08C6AE08C690C//work//my_work//Second_year//Second Semester//Image Processing//FinalProject//Picture"
+# Path = "//mnt//C0E08C6AE08C690C//work//my_work//Second_year//Second Semester//Image Processing//FinalProject//Picture"
 # Window
-# Path = "C://ACER//work//my_work//Second_year//Second Semester//Image Processing//FinalProject//Picture"
-
-# Deer_path = "02_Deer-camera.jpg"
-# Deer_img = cv2.imread(os.path.join(Path, Deer_path))
-# Deer_rgb = cv2.cvtColor(Deer_img, cv2.COLOR_BGR2RGB)
-
-# plt.figure(figsize=(10,5))
-# plt.subplot(1,1,1)
-# plt.imshow(Deer_rgb )
-# plt.show()
-
+Path = "C://work//my_work//Second_year//Second Semester//Image Processing//FinalProject//Picture"
+# C:\work\my_work\Second_year\Second Semester\Image Processing\FinalProject\Picture
 
 # Road detection
 def road_detection():
@@ -145,7 +136,21 @@ def road_detection():
 
     H_road = cv2.inRange(H_ground, 90, 140, Road_img)
 
-    Compare(Road_thresh, H_road)
+    cv2.imwrite("Filled.jpg", Filled)
+    # cv2.imwrite("H_ground.jpg", H_ground)
+    # cv2.imwrite("Ground.jpg", Ground)
+    # cv2.imwrite("Flood.jpg", Flood)
+    # cv2.imwrite("Road_thresh.jpg", Road_thresh)
+    # cv2.imwrite("H.jpg", H)
+    plt.figure(figsize=(10,4))
+    plt.subplot(1,3,1)
+    plt.imshow(Flood, cmap='gray')
+    plt.subplot(1,3,2)
+    plt.imshow(Ground, cmap='gray')
+    plt.subplot(1,3,3)
+    plt.imshow(H_road, cmap='gray')
+    plt.savefig("Final.jpg")
+    # Compare(Road_thresh, H_road)
     
 
 def Coin():
@@ -160,7 +165,7 @@ def Coin():
     Light = CLAHE(Light)
 
     #Reduce noise 
-    CoinDenoise = cv2.fastNlMeansDenoising(Coin_gray, None, 10, 7, 21)
+    CoinDenoise = cv2.fastNlMeansDenoising(Light, None, 10, 7, 21)
 
     # Edge Enhance
     EdgeEnhance = Sobel(CoinDenoise,3)
@@ -195,8 +200,6 @@ def Coin():
             # Draw center (red)
             cv2.circle(Coin_rgb, (i[0], i[1]), 2, (0, 0, 255), 3)
 
-    Compare(Filled, Coin_rgb)
-
 
 def Fundus():
     Fundus_path = "01_Fundus_photograph_of_normal_left_eye.jpg"
@@ -206,13 +209,6 @@ def Fundus():
     _, ROI = cv2.threshold(Fundus_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
     Light = CLAHE(Fundus_gray)
-
-    #Denoise
-    Denoise = cv2.fastNlMeansDenoising(Light, None, 
-                                    15, #Higher Lower noise smoother edge 
-                                    7, # use with color
-                                    35 # Higher Lower noise smoother edge
-                                    )
 
     Addaptive_Mean = cv2.adaptiveThreshold(Light, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 7, 15)
 
@@ -230,8 +226,6 @@ def Fundus():
         if stats[i, cv2.CC_STAT_AREA] >= 5:
             new_img[component_labels == i] = 255
 
-    dilate = Dialate(new_img, 2)
-
     new_img = np.uint8(new_img)
     M = cv2.moments(new_img)
     new_img = cv2.cvtColor(new_img, cv2.COLOR_GRAY2RGB)
@@ -239,9 +233,6 @@ def Fundus():
     cY = int(M["m01"] / M["m00"])
     cv2.circle(new_img, (cX, cY), 5, (255, 0, 0), -1)
     cv2.putText(new_img, (f'Centroid = X : {cX}, Y :{cY}.'), (cX - 50, cY - 20),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 0), 1)
-
-    Compare(dilate, new_img)
-
 
 def Deer():
     Deer_img = cv2.imread(os.path.join(Path, "02_Deer-camera.jpg"))
@@ -285,125 +276,4 @@ def Deer():
 
             cv2.rectangle(Deer_rgb, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-    Compare(markers, Deer_rgb)
 
-
-def Banana():
-    output_path = "//mnt//C0E08C6AE08C690C//work//my_work//Second_year//Second Semester//Image Processing//FinalProject//Output"
-    Mas_path = os.path.join(Path, "Banana/กล้วยไข่")
-    Awak_path = os.path.join(Path, "Banana/กล้วยน้ำว้า")
-    Cavendish_path = os.path.join(Path, "Banana/กล้วยหอม")
-    Mas = []
-    Awak = []
-    Cavendish = []
-
-    for index in range(1, 59):
-        name = f"Mas{index:02}.JPG"
-        banana_img = cv2.imread(os.path.join(Mas_path, name))
-        banana_hsv = cv2.cvtColor(banana_img, cv2.COLOR_BGR2HSV)
-        banana_gray = cv2.cvtColor(banana_img, cv2.COLOR_BGR2GRAY)
-
-        H, S, V = cv2.split(banana_hsv)
-
-        _, thresh = cv2.threshold(S , 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        contour, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        banana = np.zeros_like(banana_img)
-        banana = cv2.fillPoly(banana, contour, color=255)
-
-        # edge
-        edge = cv2.Canny(banana_gray, 50, 50)
-        edge_pixels = np.sum(edge>0)
-        total_pixels = edge.shape[0]*edge.shape[1]
-        edge_density = edge_pixels/total_pixels
-        Edge_percent = f"{edge_density * 100:.2f}%"
-
-        #mean color
-        R, G, B = cv2.split(banana)
-        banana_pixels = R == 255
-        H_mean = H[banana_pixels].mean()
-        H_mean = f"{H_mean:.2f}"
-
-        # banana area
-        banana_area = banana_pixels.sum()
-        ratio = banana_area / total_pixels
-        banana_percent = f"{ratio * 100:.2f}%"
-
-        print(name,  H_mean, banana_percent, Edge_percent)
-        cv2.imwrite(os.path.join(output_path, f"กล้วยไข่//{name}"), banana)
-        Mas.append([name, H_mean, banana_percent, Edge_percent])
-
-
-    for index in range(3, 49):
-        if index == 3:
-            name = "Awak4.JPG"
-        else: name = f"Awak{index:02}.JPG"
-        banana_img = cv2.imread(os.path.join(Awak_path, name))
-        banana_hsv = cv2.cvtColor(banana_img, cv2.COLOR_BGR2HSV)
-        banana_gray = cv2.cvtColor(banana_img, cv2.COLOR_BGR2GRAY)
-
-        H, S, V = cv2.split(banana_hsv)
-
-        _, thresh = cv2.threshold(S , 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        contour, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        banana = np.zeros_like(banana_img)
-        banana = cv2.fillPoly(banana, contour, color=255)
-
-        # edge
-        edge = cv2.Canny(banana_gray, 50, 50)
-        edge_pixels = np.sum(edge>0)
-        total_pixels = edge.shape[0]*edge.shape[1]
-        edge_density = edge_pixels/total_pixels
-        Edge_percent = f"{edge_density * 100:.2f}%"
-
-        #mean color
-        R, G, B = cv2.split(banana)
-        banana_pixels = R == 255
-        H_mean = H[banana_pixels].mean()
-        H_mean = f"{H_mean:.2f}"
-
-        # banana area
-        banana_area = banana_pixels.sum()
-        ratio = banana_area / total_pixels
-        banana_percent = f"{ratio * 100:.2f}%"
-
-        print(name,  H_mean, banana_percent, Edge_percent)
-
-        # cv2.imwrite(os.path.join(output_path, name), banana)
-        Awak.append([name, H_mean, banana_percent, Edge_percent])
-
-
-    for index in range(4, 49):
-        name = f"Cavendish{index:02}.JPG"
-        banana_img = cv2.imread(os.path.join(Cavendish_path, name))
-        banana_hsv = cv2.cvtColor(banana_img, cv2.COLOR_BGR2HSV)
-        banana_gray = cv2.cvtColor(banana_img, cv2.COLOR_BGR2GRAY)
-
-        H, S, V = cv2.split(banana_hsv)
-
-        _, thresh = cv2.threshold(S , 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        contour, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        banana = np.zeros_like(banana_img)
-        banana = cv2.fillPoly(banana, contour, color=255)
-
-        # edge
-        edge = cv2.Canny(banana_gray, 50, 50)
-        edge_pixels = np.sum(edge>0)
-        total_pixels = edge.shape[0]*edge.shape[1]
-        edge_density = edge_pixels/total_pixels
-        Edge_percent = f"{edge_density * 100:.2f}%"
-
-        #mean color
-        R, G, B = cv2.split(banana)
-        banana_pixels = R == 255
-        H_mean = H[banana_pixels].mean()
-        H_mean = f"{H_mean:.2f}"
-
-        # banana area
-        banana_area = banana_pixels.sum()
-        ratio = banana_area / total_pixels
-        banana_percent = f"{ratio * 100:.2f}%"
-
-        print(name,  H_mean, banana_percent, Edge_percent)
-
-
-        Cavendish.append([name, H_mean, banana_percent, Edge_percent])
